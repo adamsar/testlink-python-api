@@ -1,0 +1,23 @@
+*.class
+!.properties
+!.settings
+*~
+*#
+*.pyc
+# Package Files #
+#*.jar
+*.war
+*.ear
+\.*
+!.gitignore
+bin/*
+classes/*
+lib/*
+*.egg-info
+include/*
+share/*
+dist/*
+build/*
+.Python
+config.ini
+nosetests.xml

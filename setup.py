@@ -7,7 +7,8 @@ from setuptools import setup, find_packages
 #
 # You need to have the setuptools module installed. Try reading the setuptools
 # documentation: http://pypi.python.org/pypi/setuptools
-REQUIRES = ["httplib2 >= 0.7"]
+REQUIRES = ["xmlrpclib", "nose"]
+TEST_REQUIRES = ["mock"]
 setup(
     name = "testlink-python-api",
     version = "0.1",
@@ -17,6 +18,7 @@ setup(
     url = "https://github.com/adamsar/testlink-python-api",
     keywords = ["testlink", "python"],
     install_requires = REQUIRES,
+    tests_require = TEST_REQUIRES,
     packages = find_packages(),
     include_package_data=True,
     classifiers = [

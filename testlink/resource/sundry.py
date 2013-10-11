@@ -16,7 +16,7 @@ class Options(ApiReturn):
 class ExecutionResult(ResourceInstance):
 
     def __init__(self, connection, testcase_id=None, **data):
-        super(ExecutionResult, self).__init__(connection, **data):
+        super(ExecutionResult, self).__init__(connection, **data)
         self.testcase_id = testcase_id
 
     def create(self):

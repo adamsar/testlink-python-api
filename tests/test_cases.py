@@ -46,8 +46,8 @@ class TestCaseTestCase(TestLinkTest):
     def test_get(self):
         cases, case = self._cases_bootstrap()
         print case.data
-        print cases.get(_id=case.id)        
-        print cases.get(external_id=case.external_id)
+        print cases.get(_id=case.id)
+        print cases.get(external_id=case.full_external_id)
         self.assertRaises(TestLinkException, cases.get)        
 
         

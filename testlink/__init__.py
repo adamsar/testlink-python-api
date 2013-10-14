@@ -6,6 +6,7 @@ from testlink.resource.cases import TestCaseAccess
 from testlink.resource.builds import TestBuildAccess
 from testlink.resource.suites import TestSuiteAccess
 from testlink.resource.plans import TestPlanAccess
+from testlink.resource.platform import TestPlatformAccess
 from testlink.common import args
 
 import xmlrpclib
@@ -25,7 +26,8 @@ def find_creds():
         return (None, None)
 
 
-class TestLinkClient(TestCaseAccess, TestPlanAccess, TestBuildAccess, TestSuiteAccess):
+class TestLinkClient(TestCaseAccess, TestPlanAccess,
+                     TestBuildAccess, TestSuiteAccess, TestPlatformAccess):
 
     def __init__(self, url=None, key=None):
         """

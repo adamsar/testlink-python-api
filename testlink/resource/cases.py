@@ -1,4 +1,5 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
+from testlink.resource.sundry import ExecutionResult, Attachment
 from testlink.exception.base import TestLinkException
 from testlink.exception.lookup import TestLinkNotFound
 from testlink.common import args
@@ -129,27 +130,76 @@ class TestCase(ResourceInstance):
     """
 
     CREATE = 'createTestCase'
+    REPORT_RESULT = 'reportTCResult'
     ADD_TO_PLAN = 'addTestCaseToTestPlan'
-    ATTACHMENTS = 'getTestCaseAttachments'        
+    ATTACHMENTS = 'getTestCaseAttachments'
+    LAST_EXECUTION = 'getLastExecutionResult'
+    
 
     def __init__(self, connection, plan_id=None, **data):
         super(TestCase, self).__init__(connection, **data)
         self.plan_id = plan_id
-        if 'tcase_id' in data:
+        #For some reason 'id' is not the correct id on these
+        if 'testcase_id' in data:
+            self.id = data['testcase_id']
+        if not self.id and 'tcase_id' in data:
             self.id = data['tcase_id']
 
+            
+    def report(self, status, build_id=None, build_name=None,
+               notes=None, guess=False, bug_id=None, platform_id=None,
+               platform_name=None, custom_fields=None, overwrite=True,):
+        params = {
+            args.PLAN_ID: self.plan_id,
+            args.TESTCASE_ID: self.id,
+            args.STATUS: status
+            }
+        def check_and_add(value, arg):
+            if value: params[arg] = value
+        map(lambda t: check_and_add(t[0], t[1]), [
+            (build_id, args.BUILD_ID),
+            (build_name, args.BUILD_NAME),
+            (notes, args.NOTES),
+            (guess, args.GUESS),
+            (bug_id, args.BUG_ID),
+            (platform_id, args.PLATFORM_ID),
+            (platform_name, args.PLATFORM_NAME),
+            (custom_fields, args.CUSTOM_FIELDS),
+            (overwrite, args.OVERWRITE)
+             ])
+        results = self.connection.request(self.REPORT_RESULT, params=params)
+        return 'True' in results.pop().get('status', '')
+
+
+    def last_execution_result(self, plan_id=None):
+        if plan_id:
+            self.plan_id = plan_id
+        if not self.plan_id:
+            raise TestLinkException("Requires a plan to look up execution history")
+        results = self.connection.request(self.LAST_EXECUTION,
+                                          params = {
+                                              args.TESTCASE_ID: self.id,
+                                              args.PLAN_ID: self.plan_id                                              
+                                              }).pop()
+        return ExecutionResult(self.connection, testcase_id=self.id, **results)
         
-    def report(self, plan_id=None, **results):
-        raise NotImplemented("TODO")
+
+    @property
+    def attachments(self):
+        results = self.connection.request(self.ATTACHMENTS,
+                                          params = {args.EXTERNAL_ID: self.external_id})
+        return map(lambda data: Attachment(**data), results.values())
 
     
-    def last_execution_result(self):
-        raise NotImplemented("TODO")
+    def add_to(self, plan_id):
+        pass
 
-
-    def retrieve(self):
-        raise NotImplemented("TODO")
-
+    
+    def __getattr__(self, attr):
+        if attr == 'external_id':
+            return self.__getattr__('full_tc_external_id')
+        return super(TestCase, self).__getattr__(attr)
+        
 
 class TestSuiteTestCase(ResourceInstance):
     """

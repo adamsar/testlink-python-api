@@ -1,11 +1,12 @@
 from tests.base import TestLinkTest
 from testlink.exception.base import TestLinkException
+from testlink.common import status
 
 class TestCaseTestCase(TestLinkTest):
 
     def setUp(self):
         super(TestCaseTestCase, self).setUp()
-        self.plan = self.api.projects.cursor[0].plans.cursor[0]
+        self.plan = self.api.projects.cursor[0].plans.cursor[1]
         self.build = self.plan.builds.cursor[0]
         self.suite = self.plan.suites.cursor[0]
 
@@ -55,3 +56,18 @@ class TestCaseTestCase(TestLinkTest):
         cases, case = self._cases_bootstrap()
         print cases.get(name=case.name)
 
+
+    def test_latest_execution_result(self):
+        case = self.api.get_cases(plan_id=self.plan.id).get(external_id='bp-68')
+        print case.last_execution_result()
+
+    def test_get_attachments(self):
+        case = self.api.get_cases().get(external_id='bp-3')
+        print [attachment.date_added for attachment in case.attachments]
+
+
+    def test_send_report(self):
+        case = self.api.get_cases(self.plan.id).get(external_id='bp-3')
+        result = case.report(status.FAILED, build_id=self.build.id,
+                    notes='This is automated',
+                    overwrite=False)

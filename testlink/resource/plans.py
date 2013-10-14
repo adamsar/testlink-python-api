@@ -6,6 +6,7 @@ from testlink.resource.base import ResourceCollection, ResourceInstance
 from testlink.resource.builds import TestBuildAccess
 from testlink.resource.cases import TestCaseAccess
 from testlink.resource.suites import TestSuiteAccess
+from testlink.resource.platform import TestPlatformAccess
 from testlink.exception.base import TestLinkException
 from testlink.common import args
 
@@ -40,7 +41,8 @@ class TestPlans(ResourceCollection):
                                                                self.project_id))
 
 
-class TestPlan(ResourceInstance, TestCaseAccess, TestBuildAccess, TestSuiteAccess):
+class TestPlan(ResourceInstance, TestCaseAccess, TestBuildAccess,
+               TestSuiteAccess, TestPlatformAccess):
     """
     A plan within a project. Fields are:
     ['active',

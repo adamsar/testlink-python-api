@@ -13,6 +13,9 @@ ASSIGNED_TO = 'assignedto'
 STATUS = 'executestatus'
 EXECUTION_TYPE = 'executiontype'
 GET_STEP_INFO = 'getstepinfo'
+EXTERNAL_ID = 'testcaseexternalid'
+SUITE_ID = 'testsuiteid'
+VERSION = 'version'
 
 #PLAN_ID_LATEST = 'tplanid'
 """

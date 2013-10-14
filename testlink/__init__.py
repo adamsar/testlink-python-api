@@ -2,6 +2,10 @@ import os
 
 from testlink.exception.base import TestLinkException
 from testlink.resource.project import Projects
+from testlink.resource.cases import TestCaseAccess
+from testlink.resource.builds import TestBuildAccess
+from testlink.resource.suites import TestSuiteAccess
+from testlink.resource.plans import TestPlanAccess
 from testlink.common import args
 
 import xmlrpclib
@@ -21,7 +25,7 @@ def find_creds():
         return (None, None)
 
 
-class TestLinkClient(object):
+class TestLinkClient(TestCaseAccess, TestPlanAccess, TestBuildAccess, TestSuiteAccess):
 
     def __init__(self, url=None, key=None):
         """
@@ -35,14 +39,17 @@ class TestLinkClient(object):
         self.url = url
         self.key = key
         self.server = xmlrpclib.Server(url)
-
-        #Add in base resources
         self.projects = Projects(self)
-        
+        #Making itself the connection is a bit of a 'hack', but allows a clean
+        #interface for getting objects        
+        self.connection = self 
+
 
     def request(self, method, params={}):
         """
         Make a request to a method on the server
         """
+        print "calling {} with {}".format(method, str(params))
         params[args.DEVKEY] = self.key
-        return getattr(self.server.tl, method)(params)
+        result =  getattr(self.server.tl, method)(params)
+        return result

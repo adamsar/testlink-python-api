@@ -1,5 +1,5 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
-from testlink.resource.plans import TestPlans, TestPlan
+from testlink.resource.plans import TestPlanAccess
 from testlink.resource.sundry import Options
 
 class Projects(ResourceCollection):
@@ -20,8 +20,11 @@ class Projects(ResourceCollection):
                 return project
         raise KeyError("Project {} does not exist".format(name))
 
+    def create(self, **params):
+        pass
 
-class Project(ResourceInstance):
+
+class Project(ResourceInstance, TestPlanAccess):
     """
     The most basic block the api, a single Project
     Fields are:
@@ -57,11 +60,7 @@ class Project(ResourceInstance):
     def __init__(self, connection, **data):
         super(Project, self).__init__(connection, **data)
         if "id" in self.data:
-            self.plans = TestPlans(self.connection, self.data["id"])
-
-            
-    def create(self):
-        raise NotImplemented("TODO")
+            self.project_id = self.data['id']
             
     def __getattr__(self, attr):
         if attr == "tc_counter":
@@ -69,3 +68,4 @@ class Project(ResourceInstance):
         if attr in ['opt', 'options']:
             return self._parse_and_update('opt', Options.create)
         return super(Project, self).__getattr__(attr)
+    

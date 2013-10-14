@@ -1,19 +1,22 @@
 from tests.base import TestLinkTest
 
-class TestPlans(TestLinkTest):
+class BuildsTestCase(TestLinkTest):
+
+    def setUp(self):
+        super(BuildsTestCase, self).setUp()
+        self.plan = self.api.projects.cursor[0].plans.cursor[0]        
+
+    def test_can_list_api(self):
+        for build in self.api.get_builds(self.plan.id).cursor:
+            print build
 
     def test_can_list_plans(self):
-        for project in self.api.projects.cursor():
-            for plan in project.plans.cursor():
-                for build in plan.builds.cursor():
-                    print build
+        for build in self.plan.builds.cursor:
+            print build
 
-        self.assertTrue(False)
+    def test_can_get_latest(self):
+        print self.plan.builds.latest
 
-
-    def test_get_latest(self):
-        for project in self.api.projects.cursor():
-            for plan in project.plans.cursor():
-                print plan.builds.latest()
-
-        self.assertTrue(False)        
+    def test_can_get(self):
+        build = self.plan.builds.cursor[0]
+        print self.plan.builds.get(build.id)

@@ -14,9 +14,10 @@ class ResourceCollection(Resource):
     def _make_cursor(self):
         raise NotImplemented()
 
-    
-    def cursor(self, refresh=False):
-        if not self._cursor or refresh:
+
+    @property
+    def cursor(self):
+        if not self._cursor:
             self._cursor = self._make_cursor()
         return self._cursor
     
@@ -53,5 +54,3 @@ class ResourceInstance(Resource, ApiReturn):
     def __init__(self, connection, **data):
         Resource.__init__(self, connection)
         ApiReturn.__init__(self, **data)
-
-

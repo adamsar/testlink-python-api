@@ -14,6 +14,9 @@ class Options(ApiReturn):
         return Options(**data)
 
 class ExecutionResult(ResourceInstance):
+    CREATE = 'setTestCaseExecutionResult'
+    DELETE = 'deleteExecution'
+    REPORT = 'reportTCResult'
 
     def __init__(self, connection, testcase_id=None, **data):
         super(ExecutionResult, self).__init__(connection, **data)

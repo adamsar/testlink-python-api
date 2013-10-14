@@ -3,8 +3,9 @@ All code concerning test plans in the database
 """
 
 from testlink.resource.base import ResourceCollection, ResourceInstance
-from testlink.resource.builds import TestBuilds
-from testlink.resource.cases import TestCases
+from testlink.resource.builds import TestBuildAccess
+from testlink.resource.cases import TestCaseAccess
+from testlink.resource.suites import TestSuiteAccess
 from testlink.exception.base import TestLinkException
 from testlink.common import args
 
@@ -23,27 +24,23 @@ class TestPlans(ResourceCollection):
                        args.PROJECT_ID: self.project_id
                        }))
 
-    def get(self, _id=None, name=None , project_id=None):
+    def get(self, _id=None, name=None):
         if not _id and not name:
             raise TestLinkException("Looking up a plan requires an id or name")
-        if not project_id and not self.project_id:
-            raise TestLinkException("Need a project id to look up a plan")
 
         if _id:
             predicate = lambda x: x.id == _id
         else:
             predicate = lambda x: x.name == name
             
-        self.project_id = project_id or self.project_id
-        refresh = bool(project_id)
-        for plan in self.cursor(refresh=refresh):
+        for plan in self.cursor:
             if predicate(plan):
                 return plan
         raise KeyError("No such plan {} for project {}".format(name,
-                                                               project_id))
+                                                               self.project_id))
 
 
-class TestPlan(ResourceInstance):
+class TestPlan(ResourceInstance, TestCaseAccess, TestBuildAccess, TestSuiteAccess):
     """
     A plan within a project. Fields are:
     ['active',
@@ -60,12 +57,31 @@ class TestPlan(ResourceInstance):
         ]
 
     def __init__(self, connection, project_id=None, **data):
-        super(TestPlan, self).__init__(connection, **data)        
+        super(TestPlan, self).__init__(connection, **data)
         self.project_id = project_id
         if 'id' in data:
-            self.builds = TestBuilds(connection, plan_id=data['id'])
-            self.cases = TestCases(connection, plan_id=data['id'])
+            self.plan_id = data['id']
     
 
     def create(self):
         raise NotImplemented("TODO")
+
+class TestPlanAccess(object):
+
+    @property
+    def _should_build_plans(self):
+        _plans = getattr(self, '_plans', None)
+        if not _plans:
+            return True
+        return _plans.project_id != getattr(self, 'project_id', None)
+
+
+    @property
+    def plans(self):
+        if self._should_build_plans:
+            self._plans = self.get_plans(getattr(self, 'project_id', None))
+        return self._plans
+
+
+    def get_plans(self, project_id):
+        return TestPlans(self.connection, project_id)

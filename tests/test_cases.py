@@ -1,15 +1,17 @@
 from tests.base import TestLinkTest
 from testlink.exception.base import TestLinkException
 from testlink.common import status
+from testlink.resource.cases import make_step
 
 class TestCaseTestCase(TestLinkTest):
 
     def setUp(self):
         super(TestCaseTestCase, self).setUp()
-        self.plan = self.api.projects.cursor[0].plans.cursor[1]
+        self.plan = self.api.projects.get('Testlink Api').plans.get(name='test plan')
         self.build = self.plan.builds.cursor[0]
-        self.suite = self.plan.suites.cursor[0]
+        self.suite = self.plan.suites.get(name='test suite 1')                                
 
+        
     def _cases_bootstrap(self):
         cases = self.plan.cases
         case = cases.cursor[0]
@@ -46,9 +48,6 @@ class TestCaseTestCase(TestLinkTest):
 
     def test_get(self):
         cases, case = self._cases_bootstrap()
-        print case.data
-        print cases.get(_id=case.id)
-        print cases.get(external_id=case.full_external_id)
         self.assertRaises(TestLinkException, cases.get)        
 
         
@@ -63,11 +62,17 @@ class TestCaseTestCase(TestLinkTest):
 
     def test_get_attachments(self):
         case = self.api.get_cases().get(external_id='bp-3')
-        print [attachment.date_added for attachment in case.attachments]
+        [attachment.date_added for attachment in case.attachments]
 
 
     def test_send_report(self):
         case = self.api.get_cases(self.plan.id).get(external_id='bp-3')
-        result = case.report(status.FAILED, build_id=self.build.id,
+        self.assertTrue(
+            case.report(status.FAILED, build_id=self.build.id,
                     notes='This is automated',
                     overwrite=False)
+                    )
+
+    def test_can_create(self):
+        steps = [make_step(x, 'something', 'something expected') for x in xrange(0, 10)]
+        self.suite.cases.create('Fake test', 'andy', 'Testing the API', steps)

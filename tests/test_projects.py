@@ -13,3 +13,7 @@ class ProjectTestCase(TestLinkTest):
     def test_can_get(self):
         project = self.api.projects.cursor[0]
         self.api.projects.get(project.name)
+
+
+    def test_can_create(self):
+        self.api.projects.create('Testlink', 'tapi', 'This is generated from a python script')

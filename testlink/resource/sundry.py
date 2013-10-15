@@ -22,7 +22,7 @@ class Attachment(ApiReturn):
         return super(Attachment, self).__getattr__(attr)
         
     
-class ExecutionResult(ResourceInstance):
+class ExecutionResult(ApiReturn):
     """
     A single execution of a test case
     Keys: ['build_id',
@@ -37,15 +37,32 @@ class ExecutionResult(ResourceInstance):
     'tester_id',
     'testplan_id']
     """
-    CREATE = 'setTestCaseExecutionResult'
-    DELETE = 'deleteExecution'
+    pass
+    
+class MethodResult(ApiReturn):
+    """
+    A return from creating an object or performing most "PUT" functions
+    keys:
+    ['status', 'additionalInfo', 'operation', 'message', 'id']
+    """
 
-    def __init__(self, connection, testcase_id=None, **data):
-        super(ExecutionResult, self).__init__(connection, **data)
-        self.testcase_id = testcase_id
+    def __getattr__(self, attr):
+        if attr == 'additionalInfo':
+            return self._parse_and_update(attr, lambda x: Info(**x))
+        return super(MethodResult, self).__getattr__(attr)
 
-    def create(self):
-        raise NotImplemented()
-
-    def delete(self):
-        raise NotImplemented()
+    
+class Info(ApiReturn):
+    """
+    Additional information returned with a method result
+    keys: ['new_name',
+    'version_number',
+    'tcversion_id',
+    'msg',
+    'status_ok',
+    'external_id'
+    'has_duplicate'
+    ]
+    """
+    
+    __flags__ = ['status_ok']

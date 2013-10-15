@@ -6,6 +6,7 @@ from testlink.common import args
 class TestBuilds(ResourceCollection):
     COLLECTION = 'getBuildsForTestPlan'
     LATEST = 'getLatestBuildForTestPlan'
+    CREATE = 'createBuild'
 
     def __init__(self, connection, plan_id):
         super(TestBuilds, self).__init__(connection)
@@ -32,6 +33,19 @@ class TestBuilds(ResourceCollection):
         params = {args.PLAN_ID: self.plan_id}
         results = self.connection.request(self.LATEST, params=params)
         return self._make_build(**results)
+
+    def create(self, name, notes=None):
+        """
+        Creates a new test build for the associated
+        test plan with the name and notes given
+        """
+        params = {
+            args.PLAN_ID: self.plan_id,
+            args.BUILD_NAME: name
+            }
+        if notes:
+            params[args.BUILD_NOTES] = notes
+        return self.connection.request(self.CREATE, params=params)
     
 
 
@@ -59,10 +73,6 @@ class TestBuild(ResourceInstance, TestCaseAccess):
         self.plan_id = plan_id
         if 'id' in data:
             self.build_id = data['id']
-            
-
-    def create(self):
-        raise NotImplemented("TODO")
 
     
 class TestBuildAccess(object):

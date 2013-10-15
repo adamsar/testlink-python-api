@@ -5,4 +5,7 @@ class TestLinkTest(TestCase):
 
     def setUp(self):
         self.api = TestLinkClient()
+
+    def fail(self):
+        self.assertTrue(False)
         

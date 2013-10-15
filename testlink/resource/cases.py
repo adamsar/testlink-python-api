@@ -1,14 +1,22 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
-from testlink.resource.sundry import ExecutionResult, Attachment
+from testlink.resource.sundry import ExecutionResult, Attachment, MethodResult
 from testlink.exception.base import TestLinkException
-from testlink.exception.lookup import TestLinkNotFound
-from testlink.common import args
+from testlink.common import args, execution_types
 
 import itertools
 
+def make_step(number, actions, expected_results, execution_type=execution_types.AUTOMATED):
+    return {
+        args.STEP_NUMBER: number,
+        args.ACTIONS: actions,
+        args.EXPECTED_RESULTS: expected_results,
+        args.EXECUTION_TYPE: execution_type
+        }
+    
+
 class TestCases(ResourceCollection):
     """
-    	 * @param struct $args
+    * @param struct $args
 	 * @param string $args["devKey"]
 	 * @param int $args["testplanid"]
 	 * @param int $args["testcaseid"] - optional
@@ -26,11 +34,13 @@ class TestCases(ResourceCollection):
     COLLECTION_BY_SUITE = 'getTestCasesForTestSuite'
     GET_ID_BY_NAME = 'getTestCaseIDByName'
     GET = 'getTestCase'
+    CREATE = 'createTestCase'
 
-    def __init__(self, connection, plan_id, suite_id=None):
+    def __init__(self, connection, plan_id, project_id = None, suite_id=None):
         super(TestCases, self).__init__(connection)
         self.plan_id = plan_id
         self.suite_id = suite_id
+        self.project_id = project_id
 
         
     def _build_case(self, **data):
@@ -109,6 +119,58 @@ class TestCases(ResourceCollection):
         results = self.connection.request(self.GET, params=query).pop()
         return self._build_case(**results)
 
+    
+    def create(self, name, author, summary, steps,
+               **optionals):
+        """
+        * @param struct $args
+  	  * @param string $args["devKey"]
+  	  * @param string $args["testcasename"]
+  	  * @param int    $args["testsuiteid"]: test case parent test suite id
+  	  * @param int    $args["testprojectid"]: test case parent test suite id
+  	  *
+  	  * @param string $args["authorlogin"]: to set test case author
+  	  * @param string $args["summary"]
+  	  * @param string $args["steps"]
+  	  *
+  	  * @param string $args["preconditions"] - optional
+      * @param string $args["importance"] - optional - see const.inc.php for domain
+      * @param string $args["execution"] - optional - see ... for domain
+      * @param string $args["order'] - optional
+      * @param string $args["internalid"] - optional - do not use
+      * @param string $args["checkduplicatedname"] - optional
+      * @param string $args["actiononduplicatedname"] - optional
+      *
+  	  * @return mixed $resultInfo
+      * @return string $resultInfo['operation'] - verbose operation
+      * @return boolean $resultInfo['status'] - verbose operation
+      * @return int $resultInfo['id'] - test case internal ID (Database ID)
+      * @return mixed $resultInfo['additionalInfo'] 
+      * @return int $resultInfo['additionalInfo']['id'] same as $resultInfo['id']
+      * @return int $resultInfo['additionalInfo']['external_id'] without prefix
+      * @return int $resultInfo['additionalInfo']['status_ok'] 1/0
+      * @return string $resultInfo['additionalInfo']['msg'] - for debug 
+      * @return string $resultInfo['additionalInfo']['new_name'] only present if new name generation was needed
+      * @return int $resultInfo['additionalInfo']['version_number']
+      * @return boolean $resultInfo['additionalInfo']['has_duplicate'] - for debug 
+      * @return string $resultInfo['message']"""
+        params = {
+            args.TESTCASE_NAME: name,
+            args.SUITE_ID: self.suite_id,
+            args.PROJECT_ID: self.project_id,
+            args.AUTHOR: author,
+            args.SUMMARY: summary,
+            args.STEPS: steps
+            }
+        def check_and_add(arg):
+            v = optionals.get(arg, None)
+            if v: params[arg] = v
+        map(check_and_add,
+            ['preconditions', 'importance', 'execution', 'order',
+             'internalid', 'checkduplicatedname', 'actiononduplicatename'])        
+        return self.connection.request(self.CREATE, params=params)    
+        
+        
 
 class TestCase(ResourceInstance):
     """
@@ -128,8 +190,7 @@ class TestCase(ResourceInstance):
     'tcversion_id',
     'version']
     """
-
-    CREATE = 'createTestCase'
+    
     REPORT_RESULT = 'reportTCResult'
     ADD_TO_PLAN = 'addTestCaseToTestPlan'
     ATTACHMENTS = 'getTestCaseAttachments'
@@ -181,7 +242,7 @@ class TestCase(ResourceInstance):
                                               args.TESTCASE_ID: self.id,
                                               args.PLAN_ID: self.plan_id                                              
                                               }).pop()
-        return ExecutionResult(self.connection, testcase_id=self.id, **results)
+        return ExecutionResult(testcase_id=self.id, **results)
         
 
     @property
@@ -191,15 +252,22 @@ class TestCase(ResourceInstance):
         return map(lambda data: Attachment(**data), results.values())
 
     
-    def add_to(self, plan_id):
-        pass
+    def add(self, plan_id, project_id, version):
+        results = self.connection.request(self.ADD_TO_PLAN,
+                                          params = {
+                                              args.TESTCASE_ID: self.id,
+                                              args.PLAN_ID: plan_id,
+                                              args.PROJECT_ID: project_id,
+                                              args.VERSION: version
+                                              })
+        return MethodResult(**results[0])
 
     
     def __getattr__(self, attr):
         if attr == 'external_id':
             return self.__getattr__('full_tc_external_id')
         return super(TestCase, self).__getattr__(attr)
-        
+    
 
 class TestSuiteTestCase(ResourceInstance):
     """
@@ -224,21 +292,23 @@ class TestCaseAccess(object):
     @property
     def _should_build_cases(self):
         _cases = getattr(self, '_cases', None)
-        if not _cases:
-            return True
-        return False
+        return not _cases    
     
     @property
     def cases(self):  
         if self._should_build_cases:
-            self._cases = self.get_cases(plan_id=getattr(self, 'plan_id', None),
-                                         suite_id=getattr(self, 'suite_id', None),
-                                         build_id=getattr(self, 'build_id', None))
+            params = dict((k, getattr(self, k, None)) for k in ['plan_id',
+                                                               'suite_id',
+                                                               'build_id',
+                                                               'project_id'])
+            self._cases = self.get_cases(**params)
         return self._cases
 
     
-    def get_cases(self, plan_id=None, suite_id=None, build_id=None):
-        cases = TestCases(self.connection, plan_id=plan_id, suite_id=suite_id)
+    def get_cases(self, plan_id=None, suite_id=None,
+                  build_id=None, project_id=None):
+        cases = TestCases(self.connection, plan_id=plan_id,
+                          suite_id=suite_id, project_id=project_id)
         if build_id:
             cases.filter(build_id=build_id)
         return cases

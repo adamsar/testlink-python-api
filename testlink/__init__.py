@@ -7,6 +7,7 @@ from testlink.resource.builds import TestBuildAccess
 from testlink.resource.suites import TestSuiteAccess
 from testlink.resource.plans import TestPlanAccess
 from testlink.resource.platform import TestPlatformAccess
+from testlink.resource.sundry import MethodResult
 from testlink.common import args
 
 import xmlrpclib
@@ -28,7 +29,8 @@ def find_creds():
 
 class TestLinkClient(TestCaseAccess, TestPlanAccess,
                      TestBuildAccess, TestSuiteAccess, TestPlatformAccess):
-
+    DELETE_EXECUTION = 'deleteExecution'
+    
     def __init__(self, url=None, key=None):
         """
         Create a TestLinkClient
@@ -51,7 +53,20 @@ class TestLinkClient(TestCaseAccess, TestPlanAccess,
         """
         Make a request to a method on the server
         """
-        print "calling {} with {}".format(method, str(params))
         params[args.DEVKEY] = self.key
-        result =  getattr(self.server.tl, method)(params)
-        return result
+        try:
+            return getattr(self.server.tl, method)(params)
+        except TypeError:
+            raise TestLinkException("Call failed with parameters: {}".format(str(params)))
+            
+
+    def delete_execution_result(self, execution_id):
+        """
+        Delete's an execution result from the server. Useful in conjunction
+        with the Testcase.latest_execution_result method
+        """
+        params = {
+            args.EXECUTION_ID: execution_id
+            }
+        results = self.request(self.DELETE_EXECUTION, params=params)
+        return MethodResult(**results)

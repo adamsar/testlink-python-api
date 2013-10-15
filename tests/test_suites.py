@@ -4,8 +4,10 @@ class SuitesTestCase(TestLinkTest):
 
     def setUp(self):
         super(SuitesTestCase, self).setUp()
-        self.plan = self.api.projects.cursor[0].plans.cursor[0]
+        self.plan = self.api.projects.get('Testlink Api').plans.get(name='test plan')
 
+    def test_can_create(self):
+        self.plan.suites.create('test suite 1', 'This is an automated test')
 
     def test_can_list_api(self):
         for suite in self.api.get_suites(plan_id=self.plan.id).cursor:

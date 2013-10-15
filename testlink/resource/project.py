@@ -1,13 +1,16 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
 from testlink.resource.plans import TestPlanAccess
-from testlink.resource.sundry import Options
+from testlink.resource.sundry import Options, MethodResult
+from testlink.common import args
 
 class Projects(ResourceCollection):
 
     COLLECTION = "getProjects"
     SINGLE = "getTestProjectByName"
+    CREATE = 'createTestProject'
 
     def _make_cursor(self):
+        
         return map(lambda result: Project(self.connection, **result),
                    self.connection.request(self.COLLECTION))
     
@@ -20,8 +23,17 @@ class Projects(ResourceCollection):
                 return project
         raise KeyError("Project {} does not exist".format(name))
 
-    def create(self, **params):
-        pass
+    def create(self, name, prefix, notes):
+        """
+        Creates a new TestProject. Note this has no results for some reason
+        """
+        params = {
+            args.PROJECT_NAME: name,
+            args.PREFIX: prefix,
+            args.NOTES: notes
+            }            
+        results = self.connection.request(self.CREATE, params=params)
+        return MethodResult(**results.pop())
 
 
 class Project(ResourceInstance, TestPlanAccess):
@@ -63,6 +75,8 @@ class Project(ResourceInstance, TestPlanAccess):
             self.project_id = self.data['id']
             
     def __getattr__(self, attr):
+        if attr == 'project_name':
+            return self.__getattr__('name')
         if attr == "tc_counter":
             return self._parse_and_update(attr, int)
         if attr in ['opt', 'options']:

@@ -4,7 +4,10 @@ class BuildsTestCase(TestLinkTest):
 
     def setUp(self):
         super(BuildsTestCase, self).setUp()
-        self.plan = self.api.projects.cursor[0].plans.cursor[0]        
+        self.plan = self.api.projects.get('Testlink Api').plans.get(name='test plan')
+
+    def test_can_create(self):
+        self.plan.builds.create('test build 1', notes='this is automated')
 
     def test_can_list_api(self):
         for build in self.api.get_builds(self.plan.id).cursor:

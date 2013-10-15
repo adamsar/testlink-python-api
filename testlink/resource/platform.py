@@ -36,17 +36,20 @@ class TestPlatform(ResourceInstance):
 
 class TestPlatformAccess(object):
 
+    
     def _should_build_platforms(self):
         _platforms = getattr(self, '_platforms', None)
         if not _platforms:
             return True
         return _platforms.plan_id != self.plan_id
 
+    
     @property
     def platforms(self):
         if self._should_build_platforms:
             self._platforms = self.get_platforms(getattr(self, 'plan_id'))
         return self._platforms
 
+    
     def get_platforms(self, plan_id):
         return TestPlatforms(self.connection, plan_id)

@@ -1,6 +1,6 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
 from testlink.resource.plans import TestPlanAccess
-from testlink.resource.suite import TestSuiteAccess
+from testlink.resource.suites import TestSuiteAccess
 from testlink.resource.sundry import Options, MethodResult
 from testlink.common import args
 

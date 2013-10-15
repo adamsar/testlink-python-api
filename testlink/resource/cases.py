@@ -108,9 +108,7 @@ class TestCases(ResourceCollection):
         if name:
             return self.get_by_name(self.connection, name)
             
-        query = {
-            
-            }
+        query = {}
         def update_if_exists(value, key):
             if value: query[key] = value
         update_if_exists(external_id, args.EXTERNAL_ID)
@@ -208,11 +206,13 @@ class TestCase(ResourceInstance):
             self.id = data['tcase_id']
 
             
-    def report(self, status, build_id=None, build_name=None,
+    def report(self, status, plan_id=None,
+               build_id=None, build_name=None,
                notes=None, guess=False, bug_id=None, platform_id=None,
                platform_name=None, custom_fields=None, overwrite=True,):
+        plan_id = plan_id or self.plan_id
         params = {
-            args.PLAN_ID: self.plan_id,
+            args.PLAN_ID: plan_id,
             args.TESTCASE_ID: self.id,
             args.STATUS: status
             }

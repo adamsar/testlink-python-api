@@ -76,3 +76,5 @@ class TestCaseTestCase(TestLinkTest):
     def test_can_create(self):
         steps = [make_step(x, 'something', 'something expected') for x in xrange(0, 10)]
         self.suite.cases.create('Fake test', 'andy', 'Testing the API', steps)
+
+    #TODO: test delete execution report

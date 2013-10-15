@@ -25,7 +25,10 @@ class TestSuites(ResourceCollection):
     
     def _make_cursor(self):
         if not self.plan_id and not self.suite_id:
-            raise TestLinkException("Need a suite or plan id to get suites")
+            if not self.project_id:
+                raise TestLinkException("Need a suite or plan id to get suites")
+            else:
+                return self.first_level
         method = self.COLLECTION if self.plan_id else self.BY_SUITE
         params = {}
         def check_and_add(value, arg):

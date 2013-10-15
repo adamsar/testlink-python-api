@@ -46,8 +46,6 @@ class TestPlans(ResourceCollection):
                 return plan
         raise KeyError("No such plan {} for project {}".format(name,
                                                                self.project_id))
-
-    
     def create(self, name, notes=None, active=None, public=None):
         """Creates a new test plan for the associated project"""
         

@@ -167,9 +167,9 @@ class TestCases(ResourceCollection):
             if v: params[arg] = v
         map(check_and_add,
             ['preconditions', 'importance', 'execution', 'order',
-             'internalid', 'checkduplicatedname', 'actiononduplicatename'])        
-        return self.connection.request(self.CREATE, params=params)    
-        
+             'internalid', 'checkduplicatedname', 'actiononduplicatename'])
+        results =  self.connection.request(self.CREATE, params=params)
+        return MethodResult(**results.pop())
         
 
 class TestCase(ResourceInstance):
@@ -197,7 +197,8 @@ class TestCase(ResourceInstance):
     LAST_EXECUTION = 'getLastExecutionResult'
     
 
-    def __init__(self, connection, plan_id=None, **data):
+    def __init__(self, connection, plan_id=None,
+                **data):
         super(TestCase, self).__init__(connection, **data)
         self.plan_id = plan_id
         #For some reason 'id' is not the correct id on these

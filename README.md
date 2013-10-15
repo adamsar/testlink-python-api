@@ -6,7 +6,7 @@ This project uses python to abstact the Testlink API into a resource driven quer
 Basic usage is as follows:
 
 Get the api:
-
+```
 from testlink import TestLinkClient
 
 #Note that TestLinkClient will pull TESTLINK_URL and TESTLINK_KEY from the
@@ -48,4 +48,4 @@ from testlink.common import status
 case.report(status.SUCCESS, build_id=build.id, build_name="name",
 	    platform_id=project.platforms.cursor.pop(), notes='something")
 
-
+```

@@ -118,7 +118,7 @@ class TestCases(ResourceCollection):
         return self._build_case(**results)
 
     
-    def create(self, name, author, summary, steps,
+    def create(self, name, author, summary, steps, add_to_plan=False,
                **optionals):
         """
         * @param struct $args
@@ -167,7 +167,13 @@ class TestCases(ResourceCollection):
             ['preconditions', 'importance', 'execution', 'order',
              'internalid', 'checkduplicatedname', 'actiononduplicatename'])
         results =  self.connection.request(self.CREATE, params=params)
-        return MethodResult(**results.pop())
+        result =  MethodResult(**results.pop())
+        
+        #If it's associated with a plan_id, add this test case to it
+        if self.plan_id and add_to_plan:
+            case = self.get(_id=result.id)
+            case.add(self.project_id, self.plan_id, result.additionalInfo.version_number)
+        return result
         
 
 class TestCase(ResourceInstance):
@@ -230,7 +236,7 @@ class TestCase(ResourceInstance):
             (overwrite, args.OVERWRITE)
              ])
         results = self.connection.request(self.REPORT_RESULT, params=params)
-        return 'True' in results.pop().get('status', '')
+        return MethodResult(**results.pop())
 
 
     def last_execution_result(self, plan_id=None):
@@ -253,7 +259,12 @@ class TestCase(ResourceInstance):
         return map(lambda data: Attachment(**data), results.values())
 
     
-    def add(self, plan_id, project_id, version):
+    def add(self, project_id, plan_id, version):
+        print "Adding {} to project {}, plan {}, with version {}".format(self.name,
+                                                                         project_id,
+                                                                         plan_id,
+                                                                         version)
+                                                                         
         results = self.connection.request(self.ADD_TO_PLAN,
                                           params = {
                                               args.TESTCASE_ID: self.id,
@@ -261,7 +272,7 @@ class TestCase(ResourceInstance):
                                               args.PROJECT_ID: project_id,
                                               args.VERSION: version
                                               })
-        return MethodResult(**results[0])
+        return MethodResult(**results)
 
     
     def __getattr__(self, attr):

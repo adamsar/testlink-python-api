@@ -19,7 +19,7 @@ setup(
     keywords = ["testlink", "python"],
     install_requires = REQUIRES,
     tests_require = TEST_REQUIRES,
-    packages = find_packages(),
+    packages = ['testlink'],
     include_package_data=True,
     classifiers = [
         "Development Status :: 5 - Production/Stable",

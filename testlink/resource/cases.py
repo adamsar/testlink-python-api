@@ -215,13 +215,17 @@ class TestCase(ResourceInstance):
     def report(self, status, plan_id=None,
                build_id=None, build_name=None,
                notes=None, guess=False, bug_id=None, platform_id=None,
-               platform_name=None, custom_fields=None, overwrite=True,):
+               platform_name=None, custom_fields=None, overwrite=True):
+        
+        if not build_id and not build_name:
+            raise TestLinkException("A build id or build name required for reporting")
+        
         plan_id = plan_id or self.plan_id
         params = {
             args.PLAN_ID: plan_id,
             args.TESTCASE_ID: self.id,
             args.STATUS: status
-            }
+            }            
         def check_and_add(value, arg):
             if value: params[arg] = value
         map(lambda t: check_and_add(t[0], t[1]), [

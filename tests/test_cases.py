@@ -57,8 +57,9 @@ class TestCaseTestCase(TestLinkTest):
 
 
     def test_latest_execution_result(self):
-        case = self.api.get_cases(plan_id=self.plan.id).get(external_id='bp-68')
-        print case.last_execution_result()
+        case = self.api.get_cases(plan_id=self.plan.id).get(external_id='tapi-4')
+        print case.last_execution_result().data
+        self.fail()
 
     def test_get_attachments(self):
         case = self.api.get_cases().get(external_id='bp-3')
@@ -66,12 +67,11 @@ class TestCaseTestCase(TestLinkTest):
 
 
     def test_send_report(self):
-        case = self.api.get_cases(self.plan.id).get(external_id='bp-3')
-        self.assertTrue(
-            case.report(status.FAILED, build_id=self.build.id,
+        case = self.api.get_cases(self.plan.id).get(external_id='tapi-4')
+        result = case.report(status.FAILED,
                     notes='This is automated',
-                    overwrite=False)
-                    )
+                    overwrite=False)        
+        self.fail()
 
     def test_can_create(self):
         steps = [make_step(x, 'something', 'something expected') for x in xrange(0, 10)]

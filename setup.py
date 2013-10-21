@@ -19,7 +19,7 @@ setup(
     keywords = ["testlink", "python"],
     install_requires = REQUIRES,
     tests_require = TEST_REQUIRES,
-    packages = ['testlink'],
+    packages = ['testlink', 'testlink.common', 'testlink.exception', 'testlink.resource'],
     package_dir = {'testlink': 'src/testlink'},
     include_package_data=True,
     classifiers = [

@@ -1,6 +1,7 @@
 from testlink.resource.base import ResourceCollection, ResourceInstance
 from testlink.resource.cases import TestCaseAccess
 from testlink.common import args
+from testlink.exception.base import TestLinkException
 
 
 class TestBuilds(ResourceCollection):
@@ -22,11 +23,20 @@ class TestBuilds(ResourceCollection):
                         })
                     )
 
-    def get(self, _id):
+    def get(self, _id=None, name=None):
+        if not _id and not name:
+            raise TestLinkException("An id or name is required to retrieve a build")
+        if _id:
+            predicate = lambda build: build.id == _id
+        else:
+            predicate = lambda build: build.name == name
+            
         for build in self.cursor:
-            if build.id == _id:
+            if predicate(build):
                 return build
-        raise KeyError("No build with id {}".format(_id))
+            
+        raise KeyError("Unable to find build with specified criteria")
+    
 
     
     def latest(self):

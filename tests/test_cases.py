@@ -68,10 +68,9 @@ class TestCaseTestCase(TestLinkTest):
 
     def test_send_report(self):
         case = self.api.get_cases(self.plan.id).get(external_id='tapi-4')
-        result = case.report(status.FAILED,
+        case.report(status.FAILED,
                     notes='This is automated',
                     overwrite=False)        
-        self.fail()
 
     def test_can_create(self):
         steps = [make_step(x, 'something', 'something expected') for x in xrange(0, 10)]

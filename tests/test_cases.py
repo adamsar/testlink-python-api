@@ -8,7 +8,7 @@ class TestCaseTestCase(TestLinkTest):
     def setUp(self):
         super(TestCaseTestCase, self).setUp()
         self.plan = self.api.projects.get('Testlink Api').plans.get(name='test plan')
-        self.build = self.plan.builds.cursor[0]
+        self.build = self.plan.builds.latest()
         self.suite = self.plan.suites.get(name='test suite 1')                                
 
         
@@ -67,10 +67,14 @@ class TestCaseTestCase(TestLinkTest):
 
 
     def test_send_report(self):
-        case = self.api.get_cases(self.plan.id).get(external_id='tapi-4')
-        case.report(status.FAILED,
-                    notes='This is automated',
-                    overwrite=False)        
+        case = self.api.get_cases(self.plan.id).get(external_id='tapi-3')
+        print case.report('f',
+                          build_id=self.build.id,
+                        notes='This is automated',
+                        overwrite=False,
+                        platform_name='IE8').data
+        self.fail()
+        
 
     def test_can_create(self):
         steps = [make_step(x, 'something', 'something expected') for x in xrange(0, 10)]

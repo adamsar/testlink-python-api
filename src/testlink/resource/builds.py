@@ -44,6 +44,7 @@ class TestBuilds(ResourceCollection):
         results = self.connection.request(self.LATEST, params=params)
         return self._make_build(**results)
 
+    
     def create(self, name, notes=None):
         """
         Creates a new test build for the associated

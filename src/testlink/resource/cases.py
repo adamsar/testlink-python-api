@@ -218,12 +218,12 @@ class TestCase(ResourceInstance):
                platform_name=None, custom_fields=None, overwrite=True):
         
         if not build_id and not build_name:
-            raise TestLinkException("A build id or build name required for reporting")
+            guess = True
         
         plan_id = plan_id or self.plan_id
         params = {
             args.PLAN_ID: plan_id,
-            args.TESTCASE_ID: self.id,
+            args.EXTERNAL_ID: self.external_id,
             args.STATUS: status
             }            
         def check_and_add(value, arg):
